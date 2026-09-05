@@ -1,0 +1,14 @@
+{
+  "cSpell.words": [
+    "aiosqlite",
+    "fastapi",
+    "genai",
+    "imagekitio",
+    "psycopg",
+    "pwdlib",
+    "pydantic",
+    "pyjwt",
+    "sessionmaker",
+    "sqlalchemy"
+  ]
+}
