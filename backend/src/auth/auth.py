@@ -1,7 +1,8 @@
+from uuid import UUID
 import jwt
 from datetime import datetime, timedelta, timezone
 from pwdlib import PasswordHash
-from fastapi import Request
+from fastapi import Request, HTTPException, status
 
 from ..core.config import settings
 
@@ -48,17 +49,32 @@ def verify_access_token(token: str) -> dict | None:
     return None
 
 
-def get_current_user(request: Request) -> str | None:
+def get_current_user(request: Request) -> UUID:
   token = request.cookies.get("access_token")
   if not token:
-    return None
+    raise HTTPException(
+      status_code=status.HTTP_401_UNAUTHORIZED,
+      detail="Please log in to continue",
+    )
   
   payload = verify_access_token(token) 
   if not payload:
-    return None
+    raise HTTPException(
+      status_code=status.HTTP_401_UNAUTHORIZED,
+      detail="Invalid or expired token",
+    )
 
   user_id = payload.get("sub")
   if not user_id:
-    return None
+    raise HTTPException(
+      status_code=status.HTTP_401_UNAUTHORIZED,
+      detail="Invalid token",
+    )
   
-  return str(user_id)
+  try:
+    return UUID(user_id)
+  except ValueError:
+    raise HTTPException(
+      status_code=status.HTTP_401_UNAUTHORIZED,
+      detail="Invalid token",
+    )

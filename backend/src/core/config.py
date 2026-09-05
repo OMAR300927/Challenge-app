@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     algorithm: str = "HS256"
     expire_token_minutes: int = 30
 
+    google_api_key: SecretStr
+
 
 
 settings = Settings() #type: ignore

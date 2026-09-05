@@ -48,7 +48,7 @@ async def user_login(db: db_dependency, user: UserLogin, response: Response):
     httponly=True
   )
 
-  return {"message": "Login successful"}
+  return existing_user
 
 async def user_logout(response: Response):
   response.delete_cookie(key="access_token")
