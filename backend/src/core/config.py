@@ -18,6 +18,8 @@ class Settings(BaseSettings):
 
     google_api_key: SecretStr
 
+    imagekit_private_key: SecretStr
+
 
 
 settings = Settings() #type: ignore

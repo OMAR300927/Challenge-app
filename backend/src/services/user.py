@@ -1,6 +1,7 @@
 from typing import Annotated
+from uuid import UUID
 from datetime import datetime, timedelta, timezone
-from fastapi import Depends, HTTPException, status, Response
+from fastapi import Depends, HTTPException, status, Response, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -8,6 +9,7 @@ from ..models.model import User
 from ..auth.auth import hash_password, verify_password, create_access_token
 from ..database.db import get_db
 from ..schemas.user import UserRegister, UserLogin
+from ..utils.imagekit import imagekit
 
 db_dependency = Annotated[AsyncSession, Depends(get_db)]
 
@@ -55,7 +57,7 @@ async def user_logout(response: Response):
   response.delete_cookie(key="access_token")
   return {"message": "Logout successful"}
 
-async def reset_quota_time(db: db_dependency, user_id: str):
+async def reset_quota_time(db: db_dependency, user_id: UUID):
   get_user = await db.execute(select(User).where(User.id == user_id))
   user = get_user.scalar_one_or_none()
   if not user:
@@ -68,3 +70,31 @@ async def reset_quota_time(db: db_dependency, user_id: str):
     user.quota_reset_at = now + timedelta(days=1)
     await db.commit()
     await db.refresh(user)
+
+async def image_profile(db: db_dependency, user_id: UUID, file: UploadFile):
+  get_user = await db.execute(select(User).where(User.id == user_id))
+  user = get_user.scalar_one_or_none()
+
+  if not user:
+    raise HTTPException(
+      status_code=status.HTTP_404_NOT_FOUND,
+      detail="User not found",
+    )
+
+  if not file.filename:
+    raise HTTPException(
+      status_code=status.HTTP_400_BAD_REQUEST,
+      detail="File name is required",
+    )
+
+  image_data = await file.read()
+
+  upload_image = imagekit.files.upload(
+    file=image_data,
+    file_name=file.filename
+  )
+
+  user.image_url = upload_image.url
+  await db.commit()
+  await db.refresh(user)
+  return user

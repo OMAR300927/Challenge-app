@@ -3,6 +3,7 @@
     "aiosqlite",
     "fastapi",
     "genai",
+    "IMAGEKIT",
     "imagekitio",
     "psycopg",
     "pwdlib",
