@@ -1,4 +1,5 @@
 from typing import Annotated
+from datetime import datetime, timedelta, timezone
 from fastapi import Depends, HTTPException, status, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -53,3 +54,17 @@ async def user_login(db: db_dependency, user: UserLogin, response: Response):
 async def user_logout(response: Response):
   response.delete_cookie(key="access_token")
   return {"message": "Logout successful"}
+
+async def reset_quota_time(db: db_dependency, user_id: str):
+  get_user = await db.execute(select(User).where(User.id == user_id))
+  user = get_user.scalar_one_or_none()
+  if not user:
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+  
+  now = datetime.now(timezone.utc)
+
+  if user.quota_remaining < user.quota and now >= user.quota_reset_at:
+    user.quota_remaining = user.quota
+    user.quota_reset_at = now + timedelta(days=1)
+    await db.commit()
+    await db.refresh(user)

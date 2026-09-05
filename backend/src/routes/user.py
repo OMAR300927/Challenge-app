@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..schemas.user import UserRegister, UserLogin, UserResponse
 from ..database.db import get_db
 from ..services.user import user_register, user_login, user_logout
+from ..services.challenge import reset_quota_time
 from ..auth.auth import get_current_user
 
 router = APIRouter()
@@ -26,3 +27,7 @@ async def logout_user(response: Response):
 @router.get('/me')
 async def check_the_current_user(current_user = Depends(get_current_user)):
   return current_user
+
+@router.post('/reset-quota')
+async def reset_user_quota(db: db_dependency, current_user = Depends(get_current_user)):
+  return await reset_quota_time(db, current_user.id)
