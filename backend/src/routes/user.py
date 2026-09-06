@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..schemas.user import UserRegister, UserLogin, UserResponse
 from ..database.db import get_db
-from ..services.user import user_register, user_login, user_logout, image_profile, reset_quota_time
+from ..services.user import user_register, user_login, user_logout, image_profile, reset_quota_time, get_profile_image
 from ..auth.auth import get_current_user
 
 router = APIRouter()
@@ -38,3 +38,10 @@ async def upload_profile_image(
   file: UploadFile = File(...)
   ):
   return await image_profile(db, current_user, file)
+
+@router.get('/get-image')
+async def profile_image(
+  db: db_dependency,
+  current_user = Depends(get_current_user)
+):
+  return await get_profile_image(db, current_user)
