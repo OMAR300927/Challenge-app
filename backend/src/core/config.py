@@ -20,6 +20,18 @@ class Settings(BaseSettings):
 
     imagekit_private_key: SecretStr
 
+    rabbitmq_user: str
+    rabbitmq_pass: str
+    broker_url: str
+
+    mailtrap_host: str
+    mailtrap_port: int
+    mailtrap_username: str
+    mailtrap_password: str
+    mailtrap_from_email: str
+    mailtrap_from_name: str
+    mailtrap_to_email: str
+
 
 
 settings = Settings() #type: ignore

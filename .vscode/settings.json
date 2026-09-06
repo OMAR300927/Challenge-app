@@ -1,15 +1,20 @@
 {
   "cSpell.words": [
     "aiosqlite",
+    "amqp",
     "fastapi",
     "genai",
+    "healthcheck",
     "IMAGEKIT",
     "imagekitio",
+    "loglevel",
     "psycopg",
     "pwdlib",
     "pydantic",
     "pyjwt",
+    "pyproject",
     "sessionmaker",
-    "sqlalchemy"
+    "sqlalchemy",
+    "uvicorn"
   ]
 }

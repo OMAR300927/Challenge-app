@@ -1,0 +1,39 @@
+services:
+
+  rabbitmq:
+    image: rabbitmq:4.2-management
+    container_name: rabbitmq-container
+
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  celery_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: celery-worker
+
+    command: uv run celery -A src.celery.celery:celery_app worker --loglevel=info
+
+    env_file:
+      - .env
+
+    environment:
+      BROKER_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672//
+
+    depends_on:
+      rabbitmq:
+        condition: service_healthy

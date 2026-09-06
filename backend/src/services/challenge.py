@@ -7,6 +7,8 @@ from sqlalchemy import select, update
 from ..models.model import Challenge, User
 from ..core.challengeGenerator import generate_challenge
 from ..database.db import get_db
+from ..celery.task import send_challenge_create_message
+
 
 db_dependency = Annotated[AsyncSession, Depends(get_db)]
 
@@ -30,13 +32,17 @@ async def create_challenge(db: db_dependency, user_id: UUID) -> Challenge:
     explanation=generated_challenge.explanation
   )
 
+  db.add(new_challenge)
+
   await db.execute(
     update(User).where(User.id == user_id).values(quota_remaining=User.quota_remaining - 1)
   )
-
-  db.add(new_challenge)
+  
   await db.commit()
   await db.refresh(new_challenge)
+
+  send_challenge_create_message.delay() #type: ignore
+  
   return new_challenge
 
 async def get_challenges(db: db_dependency, user_id: UUID):
