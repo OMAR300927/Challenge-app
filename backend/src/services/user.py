@@ -104,3 +104,9 @@ async def get_profile_image(db: db_dependency, user_id: UUID):
   result = get_image.scalar_one_or_none()
 
   return result
+
+async def get_quotas(db: db_dependency, user_id: UUID):
+  quota = await db.execute(select(User.quota_remaining).where(User.id == user_id))
+  result = quota.scalar_one_or_none()
+
+  return result
