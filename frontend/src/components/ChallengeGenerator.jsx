@@ -64,7 +64,7 @@ const ChallengeGenerator = () => {
       <div className="flex flex-col items-center mt-8">
         <h2 className="text-white text-2xl sm:text-3xl font-bold">Your remaining credits: {quota}</h2>
         <hr className='border-black/50 border-t-2 w-100 mt-4' />
-        {loading && quota !== 0 (
+        {loading && quota !== 0 && (
           <span className="flex items-center justify-center gap-2 text-white font-medium text-lg sm:text-2xl mt-3">
             <LoaderCircle className="animate-spin" size={20} />
             wait for generating the challenge...
