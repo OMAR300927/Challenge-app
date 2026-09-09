@@ -31,7 +31,7 @@ async def check_the_current_user(current_user = Depends(get_current_user)):
 async def reset_user_quota(db: db_dependency, current_user = Depends(get_current_user)):
   return await reset_quota_time(db, current_user.id)
 
-@router.post('/profile/image', response_model=UserResponse)
+@router.post('/profile/image')
 async def upload_profile_image(
   db: db_dependency,
   current_user = Depends(get_current_user),

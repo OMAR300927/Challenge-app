@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from uuid import UUID, uuid4
-from sqlalchemy import JSON, func, ForeignKey
+from sqlalchemy import JSON, func, ForeignKey, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database.db import Base
@@ -17,7 +17,10 @@ class User(Base):
     image_url: Mapped[str] = mapped_column(nullable=True)
     quota: Mapped[int] = mapped_column(default=3)
     quota_remaining: Mapped[int] = mapped_column(default=3)
-    quota_reset_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc) + timedelta(days=1))
+    quota_reset_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc) + timedelta(days=1)
+    )
 
     challenges = relationship("Challenge", back_populates="user")
 

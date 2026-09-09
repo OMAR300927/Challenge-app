@@ -97,7 +97,7 @@ async def image_profile(db: db_dependency, user_id: UUID, file: UploadFile):
   user.image_url = upload_image.url
   await db.commit()
   await db.refresh(user)
-  return user
+  return user.image_url
 
 async def get_profile_image(db: db_dependency, user_id: UUID):
   get_image = await db.execute(select(User.image_url).where(User.id == user_id))
