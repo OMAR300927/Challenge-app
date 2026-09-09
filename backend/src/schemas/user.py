@@ -14,6 +14,9 @@ class UserLogin(BaseModel):
   password: str = Field(min_length=8, description="User's password")
 
 
+class ChangeUsername(BaseModel):
+  username: str
+
 class UserResponse(BaseModel):
   model_config = ConfigDict(
     from_attributes=True

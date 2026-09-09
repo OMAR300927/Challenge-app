@@ -2,9 +2,9 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Response, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..schemas.user import UserRegister, UserLogin, UserResponse
+from ..schemas.user import UserRegister, UserLogin, UserResponse, ChangeUsername
 from ..database.db import get_db
-from ..services.user import user_register, user_login, user_logout, image_profile, reset_quota_time, get_profile_image, get_quotas
+from ..services.user import user_register, user_login, user_logout, image_profile, reset_quota_time, get_profile_image, get_quotas, get_user_by_username, update_username
 from ..auth.auth import get_current_user
 
 router = APIRouter()
@@ -49,3 +49,11 @@ async def profile_image(
 @router.get('/get-quota')
 async def get_user_quotas(db: db_dependency, current_user = Depends(get_current_user)):
   return await get_quotas(db, current_user)
+
+@router.get('/username')
+async def get_username(db: db_dependency, current_user = Depends(get_current_user)):
+  return await get_user_by_username(db, current_user)
+
+@router.post('/change-username')
+async def change_username(db: db_dependency, user: ChangeUsername ,current_user = Depends(get_current_user)):
+  return await update_username(db, current_user, user.username)

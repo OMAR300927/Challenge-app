@@ -3,7 +3,7 @@ from uuid import UUID
 from datetime import datetime, timedelta, timezone
 from fastapi import Depends, HTTPException, status, Response, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 from ..models.model import User
 from ..auth.auth import hash_password, verify_password, create_access_token
@@ -110,3 +110,25 @@ async def get_quotas(db: db_dependency, user_id: UUID):
   result = quota.scalar_one_or_none()
 
   return result
+
+async def get_user_by_username(db: db_dependency, user_id: UUID):
+  username = await db.execute(select(User.username).where(User.id == user_id))
+  result = username.scalar_one_or_none()
+
+  return result
+
+async def update_username(db: db_dependency, user_id: UUID, username: str):
+  get_username = await db.execute(select(User.username).where(User.id == user_id))
+  result = get_username.scalar_one_or_none()
+
+  if not result:
+    raise HTTPException(
+      status_code=status.HTTP_404_NOT_FOUND,
+      detail='User does not exist'
+    )
+
+  await db.execute(
+    update(User).where(User.id == user_id).values(username=username)
+  )
+  await db.commit()
+  return username
