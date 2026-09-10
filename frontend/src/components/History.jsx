@@ -1,7 +1,7 @@
 import Navbar from './Navbar'
 import { useEffect, useState } from 'react'
 import { api } from '../utils/api'
-import { Check } from 'lucide-react'
+import { Check, X } from 'lucide-react'
 
 const History = () => {
   const [userHistory, setUserHistory] = useState(null);
@@ -19,6 +19,19 @@ const History = () => {
     allChallenges()
   }, [])
 
+  const deleteQuestion = async (challengeId) => {
+    try {
+      await api.delete(
+        `/challenges/delete/${challengeId}`
+      )
+      setUserHistory(prev =>
+        prev.filter(challenge => challenge.id !== challengeId)
+      );
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
   return (
     <div className="page-background min-h-screen">
       <Navbar />
@@ -28,11 +41,14 @@ const History = () => {
           <div className='m-4'>
             {!userHistory ? <p className='text-gray-200 text-2xl sm:text-3xl font-[650]'>You didn't create any challenges yet.</p>
               : <div className='text-gray-200 text-2xl sm:text-3xl font-[650] space-y-4'>
-                {userHistory.map((challenge, index) => (
+                {userHistory.map((challenge) => (
                   <div
-                    key={index}
+                    key={challenge.id}
                     className='space-y-3'
                   >
+                    <div className='flex justify-end cursor-pointer'>
+                      <X size={30} strokeWidth={3} onClick={() => deleteQuestion(challenge.id)} />
+                    </div>
                     <h3>- {challenge.question}</h3>
 
                     {challenge.options.map((option, optionIndex) => (
@@ -42,7 +58,7 @@ const History = () => {
                       >
                         - {option}
                         {optionIndex === Number(challenge.correct_answer) && (
-                          <Check className='text-green-500' size={30} strokeWidth={5}/>
+                          <Check className='text-green-500' size={30} strokeWidth={5} />
                         )}
                       </p>
                     ))}

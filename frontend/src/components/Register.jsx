@@ -40,6 +40,7 @@ const Register = () => {
               placeholder='Enter your username'
               className='form-input'
               onChange={(e) => setUsername(e.target.value)}
+              required
             />
 
             <label htmlFor="email" className='label-style'>Email<span className='text-red-500'> *</span></label>
@@ -49,6 +50,7 @@ const Register = () => {
               placeholder='Enter your email'
               className='form-input'
               onChange={(e) => setEmail(e.target.value)}
+              required
             />
 
             <label htmlFor="password" className='label-style'>Password<span className='text-red-500'> *</span></label>
@@ -58,6 +60,7 @@ const Register = () => {
               placeholder='Enter your password'
               className='form-input'
               onChange={(e) => setPassword(e.target.value)}
+              required
             />
 
             <button className='auth-btn'>Register</button>

@@ -38,6 +38,7 @@ const Login = () => {
               placeholder='Enter your email'
               className='form-input'
               onChange={(e) => setEmail(e.target.value)}
+              required
             />
 
             <label htmlFor="password" className='label-style'>Password<span className='text-red-500'> *</span></label>
@@ -47,6 +48,7 @@ const Login = () => {
               placeholder='Enter your password'
               className='form-input'
               onChange={(e) => setPassword(e.target.value)}
+              required
             />
 
             <button className='auth-btn'>Login</button>
