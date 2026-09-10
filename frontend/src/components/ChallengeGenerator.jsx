@@ -6,6 +6,7 @@ const ChallengeGenerator = () => {
   const [quota, setQuota] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [selectedOption, setSelectedOption] = useState(null);
+  const [quotaResetAt, setQuotaResetAt] = useState(null);
   const [loading, setLoading] = useState(false);
 
 
@@ -14,7 +15,8 @@ const ChallengeGenerator = () => {
       try {
         const response = await api.get('/users/get-quota')
 
-        setQuota(response.data)
+        setQuota(response.data.quota)
+        setQuotaResetAt(response.data.quota_reset_at)
       } catch (e) {
         console.log(e)
       }
@@ -22,6 +24,39 @@ const ChallengeGenerator = () => {
 
     userQuota()
   }, [])
+
+  useEffect(() => {
+    if (!quotaResetAt) {
+      return;
+    }
+
+    const resetTime = new Date(quotaResetAt).getTime();
+    const now = Date.now();
+
+    const delay = resetTime - now;
+
+    const resetQuota = async () => {
+      try {
+        const response = await api.post('/users/reset-quota');
+
+        setQuota(response.data.quota);
+        setQuotaResetAt(response.data.quota_reset_at);
+      } catch (e) {
+        console.log(e)
+      }
+    }
+
+    if (delay <= 0) {
+      resetQuota();
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      resetQuota();
+    }, delay);
+
+    return () => clearTimeout(timer)
+  }, [quotaResetAt])
 
   const getQuestion = async () => {
     if (quota === 0) {

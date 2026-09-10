@@ -106,10 +106,16 @@ async def get_profile_image(db: db_dependency, user_id: UUID):
   return result
 
 async def get_quotas(db: db_dependency, user_id: UUID):
-  quota = await db.execute(select(User.quota_remaining).where(User.id == user_id))
-  result = quota.scalar_one_or_none()
+  quota = await db.execute(select(User.quota_remaining, User.quota_reset_at).where(User.id == user_id))
+  result = quota.one_or_none()
 
-  return result
+  if not result:
+    return None
+
+  return {
+    "quota": result.quota_remaining,
+    "quota_reset_at": result.quota_reset_at
+  }
 
 async def get_user_by_username(db: db_dependency, user_id: UUID):
   username = await db.execute(select(User.username).where(User.id == user_id))
