@@ -3,6 +3,7 @@ from uuid import UUID
 from datetime import datetime, timedelta, timezone
 from fastapi import Depends, HTTPException, status, Response, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select, update
 
 from ..models.model import User
@@ -133,8 +134,18 @@ async def update_username(db: db_dependency, user_id: UUID, username: str):
       detail='User does not exist'
     )
 
-  await db.execute(
-    update(User).where(User.id == user_id).values(username=username)
-  )
-  await db.commit()
+  try:
+    await db.execute(
+      update(User).where(User.id == user_id).values(username=username)
+    )
+    await db.commit()
+
+  except IntegrityError:
+    await db.rollback()
+
+    raise HTTPException(
+      status_code=status.HTTP_409_CONFLICT,
+      detail='Username already exists'
+    )
+
   return username

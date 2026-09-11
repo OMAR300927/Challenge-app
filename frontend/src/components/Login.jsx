@@ -5,12 +5,42 @@ import { api } from '../utils/api'
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState(null);
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+
 
   const navigate = useNavigate();
 
-  const login = async(e) => {
+  const login = async (e) => {
     e.preventDefault();
+
+    let hasError = false;
+
+    if (!email) {
+      setEmailError('email is required');
+      hasError = true;
+    } else if (email.split('@')[0].length < 3) {
+      setEmailError('the part before @ must be at least 3 characters');
+      hasError = true;
+    }
+
+
+    if (!password) {
+      setPasswordError('password is required');
+      hasError = true;
+    } else if (password.length < 8) {
+      setPasswordError('password must be at least 8 characters');
+      hasError = true;
+    }
+
+    if (hasError) {
+      return;
+    }
+
     try {
+      setError(null);
+
       await api.post(
         '/users/login',
         {
@@ -20,7 +50,7 @@ const Login = () => {
       )
       navigate('/')
     } catch (e) {
-      console.log(e)
+      setError(e.response?.data?.detail);
     }
   }
 
@@ -34,25 +64,38 @@ const Login = () => {
             <label htmlFor="email" className='label-style'>Email<span className='text-red-500'> *</span></label>
             <input
               id='email'
-              type="text"
+              type="email"
               placeholder='Enter your email'
-              className='form-input'
-              onChange={(e) => setEmail(e.target.value)}
-              required
+              className={`form-input ${!emailError && 'mb-6'}`}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setEmailError('');
+              }}
             />
+            {emailError && (
+              <label className='input-error-msg'>{emailError}</label>
+            )}
 
             <label htmlFor="password" className='label-style'>Password<span className='text-red-500'> *</span></label>
             <input
               id='password'
               type="password"
               placeholder='Enter your password'
-              className='form-input'
-              onChange={(e) => setPassword(e.target.value)}
-              required
+              className={`form-input ${!passwordError && 'mb-6'}`}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setPasswordError('');
+              }}
             />
+            {passwordError && (
+              <label className='input-error-msg'>{passwordError}</label>
+            )}
 
-            <button className='auth-btn'>Login</button>
-            <button className='auth-btn mt-5' onClick={() => navigate('/register')}>Register</button>
+            <button type='submit' className='auth-btn'>Login</button>
+            {error && (
+              <label className='input-error-msg'>{error}</label>
+            )}
+            <button type='button' className='auth-btn mt-5' onClick={() => navigate('/register')}>Register</button>
           </form>
         </div>
       </div>

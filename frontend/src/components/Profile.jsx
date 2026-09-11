@@ -6,6 +6,8 @@ import { api } from '../utils/api'
 const Profile = () => {
   const [username, setUsername] = useState('');
   const [profileImage, setProfileImage] = useState(null);
+  const [errorUsernameMessage, setErrorUsernameMessage] = useState('');
+  const [successUsernameMessage, setSuccessUsernameMessage] = useState('');
   const fileInputRef = useRef(null);
 
   const navigate = useNavigate();
@@ -63,15 +65,29 @@ const Profile = () => {
 
   const changeUsername = async () => {
     try {
+      setErrorUsernameMessage('');
+      setSuccessUsernameMessage('');
+
       const response = await api.post(
         '/users/change-username',
         {
           username: username
         }
       )
-      setUsername(response.data)
+      setUsername(response.data);
+      setSuccessUsernameMessage('username updated successfully');
+
+      setTimeout(() => {
+        setSuccessUsernameMessage('')
+      }, 2000);
     } catch (e) {
-      console.log(e.response?.data)
+      setErrorUsernameMessage(
+        e.response?.data?.detail || 'Failed to update username'
+      )
+
+      setTimeout(() => {
+        setErrorUsernameMessage('')
+      }, 2000);
     }
   }
 
@@ -123,14 +139,27 @@ const Profile = () => {
             <div className="flex flex-col">
               <label htmlFor="username" className="label-style text-gray-100 font-semibold">Username <span className="text-red-600">*</span></label>
               <div className="flex items-center gap-4">
-                <input
-                  type="text"
-                  name="username"
-                  placeholder="Enter your username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="text-gray-200 text-xl sm:text-2xl md:text-3xl border-2 p-2 rounded-2xl"
-                />
+                <div className="flex flex-col">
+                  <input
+                    type="text"
+                    name="username"
+                    placeholder="Enter your username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="text-gray-200 text-xl sm:text-2xl md:text-3xl border-2 p-2 rounded-2xl"
+                  />
+                  {successUsernameMessage && (
+                    <p className="input-success-msg">
+                      {successUsernameMessage}
+                    </p>
+                  )}
+
+                  {errorUsernameMessage && (
+                    <p className="input-error-msg">
+                      {errorUsernameMessage}
+                    </p>
+                  )}
+                </div>
 
                 <button
                   onClick={changeUsername}

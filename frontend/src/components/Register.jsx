@@ -6,12 +6,49 @@ const Register = () => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState(null);
+  const [usernameError, setUsernameError] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
 
   const navigate = useNavigate();
 
-  const register = async(e) => {
+  const register = async (e) => {
     e.preventDefault();
+
+    let hasError = false;
+
+    if (!username) {
+      setUsernameError('username is required');
+      hasError = true;
+    } else if (username.length < 3) {
+      setUsernameError('username must be at least 3 characters');
+      hasError = true;
+    }
+
+    if (!email) {
+      setEmailError('email is required');
+      hasError = true;
+    } else if (email.split('@')[0].length < 3) {
+      setEmailError('the part before @ must be at least 3 characters');
+      hasError = true;
+    }
+
+    if (!password) {
+      setPasswordError('password is required');
+      hasError = true;
+    } else if (password.length < 8) {
+      setPasswordError('password must be at least 8 characters');
+      hasError = true;
+    }
+
+    if (hasError) {
+      return;
+    }
+
     try {
+      setError(null);
+
       await api.post(
         '/users/register',
         {
@@ -22,7 +59,7 @@ const Register = () => {
       )
       navigate('/login')
     } catch (e) {
-      console.log(e)
+      setError(e.response?.data?.detail)
     }
   }
 
@@ -38,32 +75,51 @@ const Register = () => {
               id='username'
               type="text"
               placeholder='Enter your username'
-              className='form-input'
-              onChange={(e) => setUsername(e.target.value)}
-              required
+              className={`form-input ${!usernameError && 'mb-6'}`}
+              onChange={(e) => {
+                setUsername(e.target.value);
+                setUsernameError('');
+              }}
             />
+            {usernameError && (
+              <label className='input-error-msg'>{usernameError}</label>
+            )}
+
 
             <label htmlFor="email" className='label-style'>Email<span className='text-red-500'> *</span></label>
             <input
               id='email'
-              type="text"
+              type="email"
               placeholder='Enter your email'
-              className='form-input'
-              onChange={(e) => setEmail(e.target.value)}
-              required
+              className={`form-input ${!emailError && 'mb-6'}`}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setEmailError('');
+              }}
             />
+            {emailError && (
+              <label className='input-error-msg'>{emailError}</label>
+            )}
+
 
             <label htmlFor="password" className='label-style'>Password<span className='text-red-500'> *</span></label>
             <input
               id='password'
               type="password"
               placeholder='Enter your password'
-              className='form-input'
-              onChange={(e) => setPassword(e.target.value)}
-              required
+              className={`form-input ${!passwordError && 'mb-6'}`}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setPasswordError('');
+              }}
             />
-
+            {passwordError && (
+              <label className='input-error-msg'>{passwordError}</label>
+            )}
             <button className='auth-btn'>Register</button>
+            {error && (
+              <label className='input-error-msg'>{error}</label>
+            )}
           </form>
         </div>
       </div>
