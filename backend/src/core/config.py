@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     database_url: str
     allow_origins: str
     api_prefix: str
+    test_database_url: str
 
     secret_key: SecretStr
     algorithm: str = "HS256"
