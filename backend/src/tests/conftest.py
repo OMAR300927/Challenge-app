@@ -11,6 +11,9 @@ from sqlalchemy.pool import NullPool
 from ..database.db import Base, get_db
 from ..main import app
 from ..core.config import settings
+from ..models.model import User
+from ..auth.auth import hash_password
+
 
 
 @pytest.fixture(scope='session')
@@ -103,3 +106,16 @@ async def login_user(client, register_user):
     assert response.status_code == 201
 
     return client
+
+@pytest.fixture
+async def user(db_session):
+  user = User(
+    username="testuser1",
+    email="test1@example.com",
+    password=hash_password("test_hash_password1")
+  )
+
+  db_session.add(user)
+  await db_session.flush()
+
+  return user
