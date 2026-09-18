@@ -11,7 +11,7 @@ from sqlalchemy.pool import NullPool
 from ..database.db import Base, get_db
 from ..main import app
 from ..core.config import settings
-from ..models.model import User
+from ..models.model import User, Challenge
 from ..auth.auth import hash_password
 
 
@@ -119,3 +119,18 @@ async def user(db_session):
   await db_session.flush()
 
   return user
+
+@pytest.fixture
+async def user_challenge(db_session, user):
+  challenge = Challenge(
+    user_id=user.id,
+    question='This is a testing question?',
+    options=['1', '2', '3', '4'],
+    correct_answer='1',
+    explanation='This is explaining for the testing question'
+  )
+
+  db_session.add(challenge)
+  await db_session.flush()
+
+  return challenge
