@@ -78,6 +78,34 @@ async def client(
 
   app.dependency_overrides.clear()
 
+
+# user register fixture
+@pytest.fixture
+async def register_response(client):
+  response = await client.post(
+    "/api/users/register",
+    json={
+      "username": "testuser",
+      "email": "test@example.com",
+      "password": "TestPassword123"
+    },
+  )
+
+  return response
+
+
+# user login fixture
+@pytest.fixture
+async def login_response(client, register_user):
+  response = await client.post(
+    "/api/users/login",
+    json=register_user
+  )
+
+  return response
+
+
+# user register and login fixtures and return the client with the cookies after login
 @pytest.fixture
 async def register_user(client):
     response = await client.post(
@@ -89,7 +117,7 @@ async def register_user(client):
       },
     )
 
-    assert response.status_code == 201
+    assert response.status_code == 200
 
     return {
       "email": "test@example.com",
@@ -103,10 +131,12 @@ async def login_user(client, register_user):
       json=register_user
     )
 
-    assert response.status_code == 201
+    assert response.status_code == 200
 
     return client
 
+
+# user and user challenges fixtures for the services testing
 @pytest.fixture
 async def user(db_session):
   user = User(
