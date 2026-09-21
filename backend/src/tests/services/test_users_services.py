@@ -331,8 +331,3 @@ async def test_user_not_updated(db_session, user):
 
   assert e.value.status_code == status.HTTP_409_CONFLICT
   assert e.value.detail == 'Username already exists'
-
-  import inspect
-
-  print(inspect.getsourcefile(update_username))
-  print(inspect.getsourcelines(update_username)[1])
