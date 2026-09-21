@@ -58,14 +58,30 @@ async def test_reset_user_quota(login_user):
 
 # test upload file
 @pytest.mark.asyncio
-async def test_upload_profile_image(login_user):
+async def test_upload_profile_image(login_user, mocker):
   files = {
     "file": ("avatar.jpg", b"fake image data", "image/jpeg")
   }
+
+  mock_imagekit = mocker.patch(
+    "src.services.user.imagekit"
+  )
+
+  mock_imagekit_result = mocker.Mock()
+  mock_imagekit_result.url = (
+    "https://fake-image.com/avatar.jpg"
+  )
+
+  mock_imagekit.files.upload.return_value = (
+    mock_imagekit_result
+  )
   
   response = await login_user.post("/api/users/profile/image", files=files)
 
   assert response.status_code == status.HTTP_200_OK
+  assert response.json() == (
+    "https://fake-image.com/avatar.jpg"
+  )
 
 
 # test get user profile image
