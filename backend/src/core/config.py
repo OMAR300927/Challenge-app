@@ -37,6 +37,8 @@ class Settings(BaseSettings):
     postgres_user: str
     postgres_pass: str
 
+    postgres_test_db: str    
+
 
 
 settings = Settings() #type: ignore
