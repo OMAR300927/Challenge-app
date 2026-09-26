@@ -1,5 +1,25 @@
 services:
 
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres-container
+
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASS}
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+
   rabbitmq:
     image: rabbitmq:4.2-management
     container_name: rabbitmq-container
@@ -19,10 +39,33 @@ services:
       retries: 5
       start_period: 10s
 
-  celery_worker:
+
+  backend:
     build:
       context: .
       dockerfile: Dockerfile
+
+    image: omarsa999/challenge-backend:latest
+
+    env_file:
+      - .env
+
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASS}@postgres:5432/${POSTGRES_DB}
+      BROKER_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672//
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+    ports:
+      - "8000:8000"
+
+
+  celery_worker:
+    image: omarsa999/challenge-backend:latest
 
     container_name: celery-worker
 
@@ -32,8 +75,31 @@ services:
       - .env
 
     environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASS}@postgres:5432/${POSTGRES_DB}
       BROKER_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672//
 
     depends_on:
+      postgres:
+        condition: service_healthy
       rabbitmq:
         condition: service_healthy
+
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+
+    image: omarsa999/challenge-frontend:latest
+
+    container_name: challenge-frontend
+
+    ports:
+      - "5173:5173"
+
+    depends_on:
+      - backend
+
+
+volumes:
+  postgres_data:
