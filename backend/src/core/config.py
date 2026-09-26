@@ -33,6 +33,10 @@ class Settings(BaseSettings):
     mailtrap_from_name: str
     mailtrap_to_email: str
 
+    postgres_db: str
+    postgres_user: str
+    postgres_pass: str
+
 
 
 settings = Settings() #type: ignore
