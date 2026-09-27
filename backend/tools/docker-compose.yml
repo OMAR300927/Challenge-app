@@ -1,0 +1,74 @@
+version: "3.8"
+
+services:
+
+  jenkins:
+    build: .
+    container_name: jenkins
+    user: root
+    restart: always
+    ports:
+      - "8085:8080"
+      - "50000:50000"
+    environment:
+      SONAR_HOST_URL: "http://sonarqube:9000"
+      KUBECONFIG: /var/jenkins_home/.kube/config
+    volumes:
+      - jenkins_data:/var/jenkins_home
+      - /home/omar/.kube:/var/jenkins_home/.kube:ro
+      - /home/omar/.minikube:/home/omar/.minikube:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+    networks:
+      - minikube
+
+
+  sonarqube:
+    image: sonarqube:lts-community
+    container_name: sonarqube
+    depends_on:
+      - jenkins
+    restart: always
+    ports:
+      - "9000:9000"
+    environment:
+      SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+    networks:
+      - minikube
+
+
+  postgres-test:
+    image: postgres:16-alpine
+    container_name: postgres-test-container
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_TEST_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASS}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_TEST_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - minikube
+
+
+# =============================
+#   Networks & Volumes
+# =============================
+networks:
+  minikube:
+    external: true
+
+volumes:
+  jenkins_data:
+    name: challenge-app-jenkins-data
+  sonarqube_data:
+  sonarqube_extensions:
