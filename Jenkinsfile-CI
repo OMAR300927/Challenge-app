@@ -1,0 +1,105 @@
+pipeline {
+  agent any
+  
+  environment {
+      SCANNER_HOME = tool 'sonar-scanner'
+      USERNAME = 'omarsa999'
+  }
+
+  stages {
+      stage('Checkout') {
+          steps {
+              git branch: 'main',
+              url: 'https://github.com/OMAR300927/Challenge-app.git'
+          }
+      }
+      
+      stage('Gitleaks scan') {
+          steps {
+              sh 'gitleaks detect --source . --exit-code 1'
+          }
+      }
+      
+      stage('Pytest') { 
+          steps {
+              dir('backend') {
+                  withCredentials([ file(credentialsId: 'env-file', variable: 'ENV_FILE') ]) {
+                      sh '''
+                      cp "$ENV_FILE" .env
+                      export PYTHONPATH="$WORKSPACE"
+                      export PATH="/root/.local/bin:$PATH"
+                      
+                      uv sync --frozen
+                      uv run coverage erase
+                      uv run coverage run -m pytest src/tests/
+                      
+                      rm -f .env
+                      ''' 
+                  } 
+              }
+          }
+      }
+      
+      stage('Coverage') {
+          steps {
+              dir('backend') {
+                  sh '''
+                  export PATH="/root/.local/bin:$PATH"
+                  uv run coverage xml -o coverage.xml
+                  '''
+              }
+          }
+      }
+      
+      stage('File system scan') {
+          steps {
+              sh 'trivy fs . --format table -o fs-report.txt'
+          }
+      }
+      
+      stage('SonarQube Analysis') {
+          steps {
+              withSonarQubeEnv('sonar-server') {
+                  sh '''
+                  $SCANNER_HOME/bin/sonar-scanner \
+                  -Dsonar.projectName=challenge-app \
+                  -Dsonar.projectKey=challenge-app \
+                  -Dsonar.exclusions=**/tests/** \
+                  -Dsonar.python.coverage.reportPaths=backend/coverage.xml
+                  '''
+              }
+          }
+      }
+      
+      stage('Quality gate') {
+          steps {
+              timeout(time: 10, unit: 'MINUTES') {
+                  waitForQualityGate abortPipeline: true, credentialsId: 'sonar-cred'
+              }
+          }
+      }
+      
+      stage('Build & tag the images') {
+          steps {
+              sh 'docker build -t $USERNAME/challenge-backend:latest ./backend'
+              sh 'docker build -t $USERNAME/challenge-frontend:latest ./frontend'
+          }
+      }
+      
+      stage('Scan the images') {
+          steps {
+              sh 'trivy image --timeout 10m --format table -o backend-image-report.txt $USERNAME/challenge-backend:latest'
+              sh 'trivy image --timeout 10m --format table -o frontend-image-report.txt $USERNAME/challenge-frontend:latest'
+          }
+      }
+      
+      stage('Push the images') {
+          steps {
+              withDockerRegistry(credentialsId: 'docker-cred', url: 'https://index.docker.io/v1/') {
+                  sh 'docker push $USERNAME/challenge-backend:latest'
+                  sh 'docker push $USERNAME/challenge-frontend:latest'
+              }
+          }
+      }
+  }
+}
