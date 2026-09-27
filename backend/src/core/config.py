@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     database_url: str
     allow_origins: str
     api_prefix: str
-    test_database_url: str
+    test_database_url: str | None = None
 
     secret_key: SecretStr
     algorithm: str = "HS256"
@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     postgres_user: str
     postgres_pass: str
 
-    postgres_test_db: str    
+    postgres_test_db: str | None = None
 
 
 
