@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: challenge-frontend
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: challenge-frontend
+
+  template:
+    metadata:
+      labels:
+        app: challenge-frontend
+
+    spec:
+      containers:
+        - name: frontend
+          image: omarsa999/challenge-frontend:latest
+          imagePullPolicy: Always
+
+          env:
+            - name: __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS
+              value: "challenge-app.com"
+
+          ports:
+            - containerPort: 5173
+
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+
+            limits:
+              cpu: "500m"
+              memory: "512Mi"

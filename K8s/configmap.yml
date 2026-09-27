@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: challenge-app-config
+
+data:
+  ALLOW_ORIGINS: "http://challenge-app.com"
+  API_PREFIX: "/api"
+
+  RABBITMQ_USER: "adminOmar"
+
+  MAILTRAP_HOST: "sandbox.smtp.mailtrap.io"
+  MAILTRAP_PORT: "587"
+  MAILTRAP_FROM_EMAIL: "omsa3008@gmail.com"
+  MAILTRAP_FROM_NAME: "Challenge App"
+  MAILTRAP_TO_EMAIL: "omsa3008@gmail.com"
+
+  POSTGRES_DB: "challenge_app"
+  POSTGRES_USER: "omar"
