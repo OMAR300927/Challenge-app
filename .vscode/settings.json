@@ -4,6 +4,7 @@
     "amqp",
     "asyncio",
     "asyncpg",
+    "configmap",
     "Eygx",
     "fastapi",
     "genai",
@@ -11,6 +12,7 @@
     "IMAGEKIT",
     "imagekitio",
     "isready",
+    "kubeconfig",
     "loglevel",
     "omarsa",
     "omarsql",
@@ -23,6 +25,7 @@
     "pytest",
     "sessionmaker",
     "sqlalchemy",
+    "statefulset",
     "uvicorn"
   ]
 }

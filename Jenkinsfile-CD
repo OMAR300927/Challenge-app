@@ -1,0 +1,67 @@
+pipeline {
+
+  agent any
+
+  stages {
+    stage('Checkout') {
+        steps {
+            git branch: 'main',
+                url: 'https://github.com/OMAR300927/Challenge-app.git'
+        }
+    }
+
+    stage('Deploy Kubernetes') {
+        steps {
+          withCredentials([
+              file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG_FILE')
+          ]) {
+              sh '''
+                  export KUBECONFIG="$KUBECONFIG_FILE"
+
+                  kubectl cluster-info
+
+                  kubectl apply -f K8s/configmap.yml
+                  kubectl apply -R -f K8s/postgres/
+                  kubectl apply -R -f K8s/rabbitmq/
+
+                  kubectl rollout status statefulset/postgres --timeout=180s
+                  kubectl rollout status statefulset/rabbitmq --timeout=180s
+
+                  kubectl delete job challenge-migrate --ignore-not-found=true
+                  kubectl apply -f K8s/migrate/job.yml
+
+                  kubectl wait \
+                      --for=condition=complete \
+                      job/challenge-migrate \
+                      --timeout=300s
+
+                  kubectl apply -R -f K8s/backend/
+                  kubectl apply -R -f K8s/celery-worker/
+                  kubectl apply -R -f K8s/frontend/
+                  kubectl apply -f K8s/ingress.yml
+              '''
+          }
+      }
+  }
+
+  stage('Verify Kubernetes') {
+      steps {
+          withCredentials([
+              file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG_FILE')
+          ]) {
+              sh '''
+                  export KUBECONFIG="$KUBECONFIG_FILE"
+
+                  kubectl rollout status deployment/challenge-backend --timeout=180s
+                  kubectl rollout status deployment/challenge-celery-worker --timeout=180s
+                  kubectl rollout status deployment/challenge-frontend --timeout=180s
+
+                  kubectl get pods
+                  kubectl get services
+                  kubectl get ingress
+              '''
+          }
+      }
+    }
+  }
+}
